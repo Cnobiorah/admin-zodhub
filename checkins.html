@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Today’s Check-ins — ZoD Hub</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --brand:#0b3b89;
+      --brand2:#1d4ed8;
+      --radius:18px;
+      --shadow: 0 18px 50px rgba(15,23,42,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 700px at 20% 0%, rgba(29,78,216,.08), transparent 60%),
+                  radial-gradient(900px 600px at 90% 20%, rgba(11,59,137,.10), transparent 55%),
+                  var(--bg);
+    }
+    a{color:inherit; text-decoration:none}
+    .app{display:grid; grid-template-columns: 280px 1fr; min-height:100vh}
+    .sidebar{
+      position:sticky; top:0; height:100vh;
+      padding:22px 18px;
+      border-right:1px solid rgba(226,232,240,.8);
+      background: rgba(244,247,251,.65);
+      backdrop-filter: blur(10px);
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+      padding:10px 10px 16px;
+      border-bottom:1px solid rgba(226,232,240,.85);
+      margin-bottom:16px;
+    }
+    .logo{
+      width:42px; height:42px; border-radius:14px;
+      display:grid; place-items:center;
+      background: linear-gradient(135deg, rgba(11,59,137,.10), rgba(29,78,216,.12));
+      border:1px solid rgba(148,163,184,.55);
+      font-weight:800; color:var(--brand);
+    }
+    .brand h1{font-size:16px; margin:0; line-height:1.1}
+    .brand p{font-size:12px; margin:2px 0 0; color:var(--muted)}
+    .nav{display:flex; flex-direction:column; gap:8px; padding:8px}
+    .nav a{
+      display:flex; align-items:center; gap:10px;
+      padding:12px 12px;
+      border-radius:14px;
+      color: #0b1220;
+      border:1px solid transparent;
+    }
+    .nav a .dot{width:10px;height:10px;border-radius:999px;background:rgba(100,116,139,.35)}
+    .nav a.active{
+      background: rgba(11,59,137,.08);
+      border-color: rgba(11,59,137,.22);
+      color: var(--brand);
+      font-weight:700;
+    }
+    .nav a.active .dot{background: var(--brand)}
+    .nav a:hover{background: rgba(15,23,42,.04)}
+    .sidebarFooter{
+      position:absolute; left:18px; right:18px; bottom:18px;
+      padding:10px 12px;
+      border:1px solid rgba(226,232,240,.9);
+      border-radius:14px;
+      background: rgba(255,255,255,.65);
+      display:flex; align-items:center; justify-content:space-between;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(226,232,240,.95);
+      background:#fff;
+      color: var(--text);
+      font-weight:600;
+    }
+    .pill .led{width:8px;height:8px;border-radius:999px;background:#22c55e}
+    .main{padding:26px 28px 40px;}
+    .topbar{
+      display:flex; align-items:flex-start; justify-content:space-between;
+      gap:18px; margin-bottom:18px;
+    }
+    .title h2{margin:0; font-size:22px; letter-spacing:-.02em}
+    .title p{margin:6px 0 0; color:var(--muted); font-size:13px}
+    .actions{display:flex; align-items:center; gap:10px}
+    .btn{
+      appearance:none; border:1px solid rgba(148,163,184,.55);
+      background:#fff; color:var(--brand);
+      padding:10px 14px;
+      border-radius:14px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow: 0 10px 28px rgba(15,23,42,.06);
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(11,59,137,.95), rgba(29,78,216,.95));
+      border-color: rgba(11,59,137,.35);
+      color:#fff;
+    }
+    .avatar{
+      width:38px;height:38px;border-radius:14px;
+      display:grid;place-items:center;
+      background:#fff;
+      border:1px solid rgba(226,232,240,.95);
+      color:var(--muted);
+      font-weight:800;
+    }
+
+    .grid2{display:grid; grid-template-columns: 1.4fr 1fr; gap:18px; align-items:start}
+    .card{
+      background: rgba(255,255,255,.9);
+      border:1px solid rgba(226,232,240,.95);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:16px 16px;
+    }
+    .card h3{margin:0 0 6px; font-size:16px}
+    .sub{margin:0 0 14px; color:var(--muted); font-size:13px}
+    .tableWrap{overflow:auto; border-radius:14px; border:1px solid rgba(226,232,240,.95)}
+    table{width:100%; border-collapse:collapse; background:#fff}
+    th, td{padding:12px 12px; font-size:13px; border-bottom:1px solid rgba(226,232,240,.8); text-align:left; white-space:nowrap}
+    th{font-size:12px; color:var(--muted); background: rgba(248,250,252,.85)}
+    tr:last-child td{border-bottom:none}
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px;
+      font-size:12px; font-weight:700;
+      border:1px solid rgba(226,232,240,.95);
+      background: rgba(248,250,252,.9);
+      color: var(--text);
+    }
+    .badge.ok{background: rgba(34,197,94,.10); border-color: rgba(34,197,94,.25); color:#166534}
+    .badge.warn{background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.28); color:#92400e}
+    .badge.bad{background: rgba(239,68,68,.10); border-color: rgba(239,68,68,.25); color:#991b1b}
+    .fieldRow{display:grid; grid-template-columns: 220px 1fr; gap:14px; padding:10px 0; border-bottom:1px dashed rgba(15,23,42,.10)}
+    .fieldRow:last-child{border-bottom:none}
+    .fieldRow strong{color:var(--muted); font-size:13px}
+    .fieldRow span{justify-self:end; text-align:right; font-size:13px}
+    .input, select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.55);
+      background:#fff;
+      outline:none;
+      font-size:13px;
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .row > *{flex:1}
+    .hint{font-size:12px; color:var(--muted); margin-top:10px}
+    @media (max-width: 1000px){
+      .app{grid-template-columns: 1fr}
+      .sidebar{position:relative; height:auto}
+      .sidebarFooter{position:relative; left:auto; right:auto; bottom:auto; margin-top:14px}
+      .grid2{grid-template-columns:1fr}
+      .main{padding:18px 14px 28px}
+    }
+</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">Z</div>
+        <div>
+          <h1>ZoD Hub</h1>
+          <p>Staff Dashboard</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="" href="verify-booking.dashboard.stats.fixed.html"><span class="dot"></span>Verify Booking</a>
+<a class="active" href="checkins.html"><span class="dot"></span>Today’s Check-ins</a>
+<a class="" href="verification-logs.html"><span class="dot"></span>Verification Logs</a>
+<a class="" href="settings.html"><span class="dot"></span>Settings</a>
+      </nav>
+
+      <div class="sidebarFooter">
+        <span class="pill"><span class="led"></span>Staff online</span>
+        <span>v1.0</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="title">
+          <h2>Today’s Check-ins</h2>
+          <p>View today’s verifications and manage entry flow.</p>
+        </div>
+        <div class="actions">
+          <button class="btn" type="button">Sign out</button>
+          <div class="avatar">SA</div>
+        </div>
+      </div>
+
+      <!-- PAGE CONTENT -->
+      
+<div class="grid2">
+  <section class="card">
+    <h3>Today’s check-ins</h3>
+    <p class="sub">Live list of verifications recorded today.</p><div id="msg" class="hint" style="margin-top:-6px;margin-bottom:10px"></div>
+
+    <div class="row" style="margin-bottom:12px">
+      <input class="input" placeholder="Search booking ref or customer…" />
+      <select>
+        <option>Filter: All</option>
+        <option>Valid only</option>
+        <option>Expired attempts</option>
+        <option>Already used</option>
+      </select>
+    </div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Booking ref</th>
+            <th>Customer</th>
+            <th>Package</th>
+            <th>Amount</th>
+            <th>Result</th>
+            <th>Staff</th>
+          </tr>
+        </thead>
+        <tbody id="checkinsTbody">
+          <tr><td colspan="7" style="color:var(--muted); padding:16px">Loading today’s check-ins…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="hint">When activated, this table will read from <b>booking_verifications</b> where <b>verified_at</b> is today.</p>
+  </section>
+
+  <aside class="card">
+    <h3>Summary</h3>
+    <p class="sub">Operational snapshot for front desk.</p>
+
+    <div class="fieldRow"><strong>Verified today</strong><span id="sumVerified">—</span></div>
+    <div class="fieldRow"><strong>First check-in</strong><span id="sumFirst">—</span></div>
+    <div class="fieldRow"><strong>Last check-in</strong><span id="sumLast">—</span></div>
+    <div class="fieldRow"><strong>Most used package</strong><span id="sumTopPkg">—</span></div>
+
+    <div style="margin-top:14px" class="row">
+      <button class="btn primary" type="button">Export CSV</button>
+      <button class="btn" type="button">Print</button>
+    </div>
+
+    <p class="hint">Export/print can be enabled later without changing the verification rules.</p>
+  </aside>
+</div>
+
+    </main>
+  </div>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  const SUPABASE_URL = "https://dzazdrpgedrrcnuzgjjc.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6YXpkcnBnZWRycmNudXpnampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjUxOTQsImV4cCI6MjA4MjcwMTE5NH0.8ZRnOiGtyfi5ibmTbKLROnQ4PqBIDvDfeH-mWGUQy_M";
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true }
+  });
+
+  const el = (id) => document.getElementById(id);
+  const setMsg = (text) => { if (el("msg")) el("msg").textContent = text || ""; };
+
+  async function requireStaff() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setMsg("You are signed out. Please sign in first.");
+      return null;
+    }
+
+    const { data: isStaff, error } = await supabase.rpc("is_staff");
+    if (error) throw error;
+    if (!isStaff) {
+      setMsg("Access denied. Staff only.");
+      return null;
+    }
+
+    const email = session.user?.email || "";
+    const initials = (email.split("@")[0].slice(0,2) || "SA").toUpperCase();
+    const avatar = document.querySelector(".avatar");
+    if (avatar) avatar.textContent = initials;
+
+    return session;
+  }
+
+  function fmtTime(iso) {
+    if (!iso) return "—";
+    try {
+      const d = new Date(iso);
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return "—";
+    }
+  }
+
+  function fmtMoney(n) {
+    if (n == null || n === "") return "—";
+    try {
+      return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(Number(n));
+    } catch {
+      return `₦${n}`;
+    }
+  }
+
+  function badge(result) {
+    const r = String(result || "").toLowerCase();
+    if (r.includes("verified") || r === "ok" || r === "valid" || r === "paid") return '<span class="badge ok">Verified</span>';
+    if (r.includes("pending")) return '<span class="badge warn">Pending</span>';
+    return '<span class="badge bad">Rejected</span>';
+  }
+
+  async function loadTodayCheckins() {
+    const today = new Date().toISOString().split("T")[0];
+    const startIso = `${today}T00:00:00.000Z`;
+    const nextIso = new Date(Date.parse(startIso) + 24*60*60*1000).toISOString();
+
+    const { data: verifs, error: vErr } = await supabase
+      .from("booking_verifications")
+      .select("booking_id, verified_at, verified_by, result, status, booking:bookings(booking_ref, customer_name, amount_ngn, package:packages(name))")
+      .gte("verified_at", startIso)
+      .lt("verified_at", nextIso)
+      .order("verified_at", { ascending: false });
+
+    if (vErr) throw vErr;
+
+    const tbody = el("checkinsTbody");
+    if (!tbody) return;
+
+    if (!verifs || verifs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted); padding:16px">No check-ins yet today.</td></tr>';
+      el("sumVerified").textContent = "0";
+      el("sumFirst").textContent = "—";
+      el("sumLast").textContent = "—";
+      el("sumTopPkg").textContent = "—";
+      return;
+    }
+
+    const times = verifs.map(v => v.verified_at).filter(Boolean).map(t => new Date(t).getTime()).sort((a,b)=>a-b);
+    el("sumVerified").textContent = String(verifs.length);
+    el("sumFirst").textContent = times.length ? fmtTime(new Date(times[0]).toISOString()) : "—";
+    el("sumLast").textContent = times.length ? fmtTime(new Date(times[times.length-1]).toISOString()) : "—";
+
+    const pkgCount = {};
+    for (const v of verifs) {
+      const b = v.booking;
+      const name = b?.package?.name || "—";
+      pkgCount[name] = (pkgCount[name] || 0) + 1;
+    }
+    const topPkg = Object.entries(pkgCount).sort((a,b)=>b[1]-a[1])[0];
+    el("sumTopPkg").textContent = topPkg ? `${topPkg[0]} (${topPkg[1]})` : "—";
+
+    tbody.innerHTML = verifs.map(v => {
+      const b = v.booking;
+      const customer = b?.customer_name || "—";
+      const pkg = b?.package?.name || "—";
+      const amount = fmtMoney(b?.amount_ngn);
+      const staff = v.verified_by ? String(v.verified_by).slice(0,6) + "…" : "—";
+      const res = v.result || v.status || "verified";
+      return `
+        <tr>
+          <td>${fmtTime(v.verified_at)}</td>
+          <td>${b?.booking_ref || "—"}</td>
+          <td>${customer}</td>
+          <td>${pkg}</td>
+          <td>${amount}</td>
+          <td>${badge(res)}</td>
+          <td>${staff}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  // Sign out
+  const signOutBtn = Array.from(document.querySelectorAll("button.btn")).find(b => b.textContent.trim().toLowerCase() === "sign out");
+  if (signOutBtn) {
+    signOutBtn.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      location.href = "staff-login.html";
+    });
+  }
+
+  try {
+    const session = await requireStaff();
+    if (session) await loadTodayCheckins();
+  } catch (err) {
+    console.error(err);
+    setMsg(err?.message || String(err));
+    const tbody = el("checkinsTbody");
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="color:#991b1b; padding:16px">Failed to load check-ins. Check RLS and column names.</td></tr>';
+  }
+</script>
+
+</body>
+</html>
