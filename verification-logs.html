@@ -180,12 +180,10 @@
       </div>
 
       <nav class="nav">
-        
-        <a href="verify-booking.html"><span class="dot"></span>Verify Booking</a>
-        <a href="checkins.html"><span class="dot"></span>Today’s Check-ins</a>
-        <a class="active" href="verification-logs.html"><span class="dot"></span>Verification Logs</a>
-        <a href="settings.html"><span class="dot"></span>Settings</a>
-
+        <a class="" href="verify-booking.dashboard.stats.fixed.html"><span class="dot"></span>Verify Booking</a>
+<a class="" href="checkins.html"><span class="dot"></span>Today’s Check-ins</a>
+<a class="active" href="verification-logs.html"><span class="dot"></span>Verification Logs</a>
+<a class="" href="settings.html"><span class="dot"></span>Settings</a>
       </nav>
 
       <div class="sidebarFooter">
@@ -356,11 +354,11 @@
 
     let q = supabase
       .from("booking_verifications")
-      .select("booking_ref, verified_at, verified_by, result, status, notes", { count: "exact" })
+      .select("booking_id, verified_at, verified_by, result, status, notes, booking:bookings(booking_ref, customer_name, package:packages(name))", { count: "exact" })
       .order("verified_at", { ascending: false })
       .limit(200);
 
-    if (ref) q = q.ilike("booking_ref", `%${ref}%`);
+    if (ref) q = q.or(`booking.booking_ref.ilike.%${ref}%`);
 
     // Staff filter: allow prefix match on uuid text
     if (staff) q = q.ilike("verified_by", `${staff}%`);
@@ -392,26 +390,13 @@
     if (vErr) throw vErr;
 
     const rows = verifs || [];
-    const refs = [...new Set(rows.map(r => r.booking_ref).filter(Boolean))];
 
-    // Join booking + packages (best effort; logs should still render if join fails)
-    let bookingMap = new Map();
-    if (refs.length) {
-      const { data: bookings, error: bErr } = await supabase
-        .from("bookings")
-        .select("booking_ref, customer_name, package:packages(id, name)")
-        .in("booking_ref", refs);
-
-      if (!bErr && bookings) {
-        bookingMap = new Map(bookings.map(b => [b.booking_ref, b]));
-      }
-    }
-
+    // booking info comes via nested select
     lastRows = rows.map(r => {
-      const b = bookingMap.get(r.booking_ref);
+      const b = r.booking;
       return {
         verified_at: r.verified_at,
-        booking_ref: r.booking_ref,
+        booking_ref: r.booking?.booking_ref || "",
         customer_name: b?.customer_name || "—",
         package_name: b?.package?.name || "—",
         result: r.result || r.status || "checked",
