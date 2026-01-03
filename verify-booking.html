@@ -3,353 +3,118 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ZoD Hub — Verification Dashboard</title>
+  <title>Verify Booking Reference — ZoD Hub</title>
+
   <style>
     :root{
-      --bg:#f6f7fb;
-      --panel:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line:#e5e7eb;
-      --accent:#0b3b89;
-      --accent2:#0a2f6d;
-      --ok:#166534;
-      --okbg:rgba(22,101,52,.08);
-      --bad:#b91c1c;
-      --badbg:rgba(185,28,28,.08);
-      --radius:16px;
-      --shadow:0 16px 40px rgba(2,6,23,.08);
-      --shadow2:0 10px 22px rgba(2,6,23,.06);
-      --focus:0 0 0 4px rgba(11,59,137,.18);
+      --bg:#fbfbf8; --card:#fff; --text:#0f172a; --muted:#475569; --line:#e5e7eb;
+      --accent:#0b3b89; --accent2:#0a2f6d; --danger:#b91c1c; --success:#166534;
+      --radius:18px; --shadow:0 18px 45px rgba(2,6,23,.08); --focus:0 0 0 4px rgba(11,59,137,.18);
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{
-      margin:0;
+      margin:0; min-height:100vh; display:grid; place-items:center; padding:24px;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      background:radial-gradient(1000px 600px at 20% 10%, rgba(11,59,137,.10), transparent 55%), var(--bg);
       color:var(--text);
-      background:
-        radial-gradient(900px 520px at 12% 8%, rgba(11,59,137,.10), transparent 60%),
-        radial-gradient(720px 460px at 90% 12%, rgba(11,59,137,.07), transparent 55%),
-        var(--bg);
     }
-    .shell{display:grid; grid-template-columns: 270px 1fr; min-height:100vh}
-    aside{
-      position:sticky; top:0; height:100vh;
-      padding:18px;
-      border-right:1px solid var(--line);
-      background:rgba(255,255,255,.55);
-      backdrop-filter: blur(10px);
-    }
-    main{padding:22px}
-
-    .brand{
-      display:flex; gap:12px; align-items:center;
-      padding:10px 10px 14px;
-      border-bottom:1px solid rgba(15,23,42,.08);
-      margin-bottom:14px;
-    }
-    .logo{
-      width:42px; height:42px; border-radius:14px;
-      display:grid; place-items:center;
-      background:rgba(11,59,137,.10);
-      border:1px solid rgba(11,59,137,.16);
-      font-weight:800; color:var(--accent);
-    }
-    .brand h1{margin:0; font-size:14.5px; letter-spacing:.2px}
-    .brand p{margin:2px 0 0; font-size:12.5px; color:var(--muted)}
-    .nav{margin-top:12px; display:flex; flex-direction:column; gap:8px}
-    .nav a{
-      display:flex; align-items:center; gap:10px;
-      padding:10px 12px; border-radius:14px;
-      text-decoration:none; color:var(--text);
-      border:1px solid transparent;
-    }
-    .nav a.active{
-      background:rgba(11,59,137,.08);
-      border-color:rgba(11,59,137,.18);
-      color:var(--accent);
-      font-weight:600;
-    }
-    .nav a:hover{background:rgba(2,6,23,.03)}
-    .nav .dot{width:10px; height:10px; border-radius:999px; background:rgba(100,116,139,.35)}
-    .nav a.active .dot{background:var(--accent)}
-    .aside-foot{
-      position:absolute; bottom:18px; left:18px; right:18px;
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-      padding-top:14px; border-top:1px solid rgba(15,23,42,.08);
-      color:var(--muted); font-size:12px;
-    }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:7px 10px; border-radius:999px;
-      border:1px solid rgba(15,23,42,.10);
-      background:#fff; box-shadow:var(--shadow2);
-      color:var(--muted); font-size:12px;
-    }
-    .pill .badge{width:8px; height:8px; border-radius:999px; background:rgba(22,101,52,.7)}
-
-    .topbar{display:flex; gap:14px; align-items:center; justify-content:space-between; margin-bottom:18px}
-    .title h2{margin:0; font-size:18px}
-    .title p{margin:4px 0 0; color:var(--muted); font-size:13px}
-    .actions{display:flex; gap:10px; align-items:center}
-    .btn{
-      border:none; cursor:pointer;
-      padding:10px 12px; border-radius:12px;
-      font-weight:600; box-shadow:var(--shadow2);
-      display:inline-flex; align-items:center; justify-content:center;
-      text-decoration:none;
-    }
-    .btn.primary{background:var(--accent); color:#fff}
-    .btn.primary:hover{background:var(--accent2)}
-    .btn.ghost{background:#fff; color:var(--accent); border:1px solid rgba(11,59,137,.18); box-shadow:none}
-    .btn.ghost:hover{background:rgba(11,59,137,.06)}
-    .btn.secondary{background:#fff; border:1px solid rgba(11,59,137,.22); color:var(--accent); box-shadow:none}
-    .btn.secondary:hover{background:rgba(11,59,137,.06)}
-    .avatar{
-      width:38px; height:38px; border-radius:14px;
-      display:grid; place-items:center;
-      background:#fff; border:1px solid rgba(15,23,42,.10);
-      box-shadow:var(--shadow2); color:var(--muted); font-weight:700;
-    }
-
-    .stats{display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px; margin-bottom:16px}
-    .stat{
-      padding:14px; border-radius:16px;
-      border:1px solid rgba(15,23,42,.08);
-      background:rgba(255,255,255,.7);
-      box-shadow:var(--shadow2);
-    }
-    .stat .k{font-size:12px; color:var(--muted)}
-    .stat .v{font-size:18px; font-weight:800; margin-top:6px}
-    .stat .t{font-size:12px; color:var(--muted); margin-top:4px}
-
-    .grid{display:grid; grid-template-columns: 1.2fr .8fr; gap:16px}
-    .card{
-      background:var(--panel);
-      border:1px solid rgba(15,23,42,.08);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:16px;
-    }
-    .card h3{margin:0 0 10px; font-size:14px; letter-spacing:.2px}
-    .sub{color:var(--muted); font-size:12.5px; margin:0 0 12px}
-
-    label{display:block; font-size:12px; color:var(--muted); margin-bottom:8px}
-    .field{
-      display:flex; gap:10px; align-items:center;
-      padding:12px; border-radius:16px;
-      border:1px solid rgba(15,23,42,.10);
-      background:#fff;
-    }
-    .field:focus-within{box-shadow:var(--focus); border-color:rgba(11,59,137,.45)}
-    input{
-      width:100%; border:none; outline:none;
-      font-size:16px; padding:2px 0; color:var(--text);
-      background:transparent;
-    }
-    .hint{margin:10px 0 0; color:var(--muted); font-size:12.5px}
-    .form-actions{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap}
-
-    #status.status{display:none; margin-top:14px}
-    #status.status.show{display:block}
-    .status-card{
-      padding:12px; border-radius:16px; border:1px solid rgba(15,23,42,.10);
-      display:flex; gap:10px; align-items:flex-start;
-      background:#fff;
-    }
-    .status-card.ok{background:var(--okbg); border-color:rgba(22,101,52,.22)}
-    .status-card.bad{background:var(--badbg); border-color:rgba(185,28,28,.22)}
-    .icon{
-      width:22px; height:22px; border-radius:8px;
-      display:grid; place-items:center;
-      font-weight:900; flex:0 0 auto; margin-top:1px;
-      border:1px solid rgba(15,23,42,.08);
-      background:#fff;
-    }
-    .ok .icon{color:var(--ok)}
-    .bad .icon{color:var(--bad)}
-    .msg{font-size:13px}
-    .msg strong{display:block; margin-bottom:2px}
-
-    .details{margin-top:12px}
-    .details .row{
-      display:grid; grid-template-columns: 220px 1fr;
-      gap:28px; padding:10px 0;
-      border-bottom:1px dashed rgba(15,23,42,.10);
-      font-size:13px; color:var(--text);
-    }
-    .details .row:last-child{border-bottom:none}
-    .details .row strong{color:var(--muted); font-weight:700}
-    .details .row span{justify-self:end; color:var(--text)}
-
-    .list{display:flex; flex-direction:column; gap:10px; margin-top:10px}
-    .item{
-      display:flex; gap:10px; align-items:flex-start;
-      padding:12px; border-radius:16px;
-      border:1px solid rgba(15,23,42,.08);
-      background:rgba(255,255,255,.75);
-      box-shadow:var(--shadow2);
-    }
-    .item .mini{
-      width:34px; height:34px; border-radius:14px;
-      display:grid; place-items:center;
-      border:1px solid rgba(15,23,42,.08);
-      background:#fff; font-weight:800; color:var(--accent);
-      flex:0 0 auto;
-    }
-    .item .meta{flex:1}
-    .item .meta strong{display:block; font-size:13px; margin-bottom:2px}
-    .item .meta span{display:block; font-size:12px; color:var(--muted)}
-    .small{font-size:12px; color:var(--muted)}
-    .divider{height:1px; background:rgba(15,23,42,.08); margin:12px 0}
-    .footer{
-      margin-top:16px; font-size:12px; color:var(--muted);
-      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
-    }
+    .wrap{width:min(560px,100%)}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:26px}
+    .brand{display:flex; gap:12px; align-items:center; padding-bottom:12px; border-bottom:1px solid var(--line); margin-bottom:18px}
+    .logo{width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background:rgba(11,59,137,.1);
+      border:1px solid rgba(11,59,137,.18); font-weight:800; color:var(--accent)}
+    .brand h1{margin:0; font-size:16px}
+    .brand p{margin:2px 0 0; font-size:13px; color:var(--muted)}
+    h2{margin:0; font-size:22px}
+    .subtitle{margin:8px 0 18px; font-size:14px; color:var(--muted); line-height:1.5}
+    label{font-size:13px; color:var(--muted)}
+    input{width:100%; padding:14px; margin-top:8px; border-radius:14px; border:1px solid var(--line); font-size:16px; outline:none}
+    input:focus{border-color:rgba(11,59,137,.55); box-shadow:var(--focus)}
+    .hint{margin-top:6px; font-size:12.5px; color:var(--muted)}
+    .actions{display:flex; gap:12px; margin-top:18px; flex-wrap:wrap}
+    button{padding:13px 18px; border-radius:14px; border:none; font-weight:600; cursor:pointer; min-width:150px}
+    .primary{background:var(--accent); color:#fff}
+    .primary:hover{background:var(--accent2)}
+    .secondary{background:#fff; border:1px solid rgba(11,59,137,.35); color:var(--accent)}
+    .status{display:none; margin-top:16px; padding:12px; border-radius:14px; border:1px solid var(--line); font-size:13px; line-height:1.45}
+    .status.show{display:block}
+    .status.ok{background:rgba(22,101,52,.06); border-color:rgba(22,101,52,.28); color:var(--success)}
+    .status.bad{background:rgba(185,28,28,.06); border-color:rgba(185,28,28,.28); color:var(--danger)}
+    .details{margin-top:10px; color:var(--muted)}
+    .row{display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed rgba(15,23,42,.10)}
+    .row:last-child{border-bottom:none}
+    .footer{margin-top:18px; font-size:12px; color:var(--muted); display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
     .footer a{color:var(--accent); text-decoration:none}
-    .footer a:hover{text-decoration:underline}
+  
+/* NAV FIX: ensure sidebar items are clickable above decorative layers */
+.sidebar, .sidebar * { pointer-events: auto; }
+.sidebar { position: relative; z-index: 5; }
 
-    @media (max-width: 980px){
-      .shell{grid-template-columns: 1fr}
-      aside{position:relative; height:auto}
-      .aside-foot{position:relative; margin-top:14px}
-      .stats{grid-template-columns: repeat(2, minmax(0,1fr))}
-      .grid{grid-template-columns:1fr}
-      .details .row{grid-template-columns: 1fr 1fr}
-    }
-  </style>
+</style>
 </head>
 
 <body>
-  <div class="shell">
-    <aside>
+  <main class="wrap">
+    <section class="card">
       <div class="brand">
         <div class="logo">Z</div>
         <div>
           <h1>ZoD Hub</h1>
-          <p>Staff Dashboard</p>
+          <p>Booking Reference Verification</p>
         </div>
       </div>
 
-      <nav class="nav">
-        <a class="active" href="#"><span class="dot"></span>Verify Booking</a>
-        <a href="#"><span class="dot"></span>Today’s Check-ins</a>
-        <a href="#"><span class="dot"></span>Verification Logs</a>
-        <a href="#"><span class="dot"></span>Settings</a>
-      </nav>
+      <h2>Verify a booking</h2>
+      <p class="subtitle">Enter the booking reference to check validity.</p>
 
-      <div class="aside-foot">
-        <span class="pill"><span class="badge"></span> Staff online</span>
-        <span class="small">v1.0</span>
-      </div>
-    </aside>
+      <label for="code">Booking reference</label>
+      <input id="code" type="text" placeholder="e.g. ZDH-5A7309E8" autocomplete="off" />
+      <div class="hint">References are provided on the confirmation page or email receipt.</div>
 
-    <main>
-      <div class="topbar">
-        <div class="title">
-          <h2>Booking Verification</h2>
-          <p>Verify a booking reference and confirm entry.</p>
-        </div>
-        <div class="actions">
-          <a id="signOutLink" class="btn ghost" href="./staff-login.html">Sign out</a>
-          <div class="avatar" title="Staff">SA</div>
-        </div>
+      <div class="actions">
+        <button id="verifyBtn" class="primary" type="button">Verify reference</button>
+        <button id="clearBtn" class="secondary" type="button">Clear</button>
       </div>
 
-      <section class="stats" aria-label="summary stats">
-        <div class="stat"><div class="k">Verified today</div><div class="v" id="statVerified">—</div><div class="t">Optional metric</div></div>
-        <div class="stat"><div class="k">Pending</div><div class="v" id="statPending">—</div><div class="t">Optional metric</div></div>
-        <div class="stat"><div class="k">Expired</div><div class="v" id="statExpired">—</div><div class="t">Optional metric</div></div>
-        <div class="stat"><div class="k">Active staff</div><div class="v" id="statStaff">—</div><div class="t">Optional metric</div></div>
-      </section>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
 
-      <section class="grid">
-        <div class="card">
-          <h3>Verify a booking reference</h3>
-          <p class="sub">Enter the booking reference exactly as shown on the confirmation page/email.</p>
-
-          <label for="code">Booking reference</label>
-          <div class="field">
-            <input id="code" type="text" placeholder="e.g. ZDH-5A7309E8" autocomplete="off" />
-          </div>
-          <p class="hint">Daily passes are one-time use. Weekly/monthly/yearly can be verified until expiry.</p>
-
-          <div class="form-actions">
-            <button id="verifyBtn" class="btn primary" type="button">Verify reference</button>
-            <button id="clearBtn" class="btn secondary" type="button">Clear</button>
-          </div>
-
-          <div id="status" class="status" role="status" aria-live="polite"></div>
-
-          <div class="footer">
-            <span>Need help? <a href="mailto:hello@zodhub.com">hello@zodhub.com</a></span>
-            <span class="small">ZoD Hub</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Recent activity</h3>
-          <p class="sub">UI panel (optional). Connect to logs later if needed.</p>
-
-          <div class="list" aria-label="activity list">
-            <div class="item">
-              <div class="mini">✓</div>
-              <div class="meta">
-                <strong>Latest verification</strong>
-                <span>Connect to booking_verifications if you want.</span>
-              </div>
-              <div class="small">—</div>
-            </div>
-            <div class="item">
-              <div class="mini">•</div>
-              <div class="meta">
-                <strong>Staff actions</strong>
-                <span>Export / filters / search can live here.</span>
-              </div>
-              <div class="small">—</div>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <h3>Quick actions</h3>
-          <p class="sub">Common staff operations.</p>
-          <div class="form-actions">
-            <button class="btn ghost" type="button" disabled>Open logs</button>
-            <button class="btn ghost" type="button" disabled>Manage staff</button>
-            <button class="btn ghost" type="button" disabled>Help</button>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
+      <div class="footer">
+        <span>Need help? <a href="mailto:hello@zodhub.com">hello@zodhub.com</a></span>
+        <a id="signOutLink" href="./staff-login.html">Sign out</a>
+      </div>
+    </section>
+  </main>
 
   <script type="module">
+  async function getPackageName(package_id) {
+  if (!package_id) return "-";
+  const { data, error } = await supabase
+    .from("packages")
+    .select("name")
+    .eq("id", package_id)
+    .maybeSingle();
+  if (error || !data) return "-";
+  return data.name || "-";
+}
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // ✅ REQUIRED: Supabase → Project Settings → API
+    // ✅ REQUIRED: paste from Supabase → Project Settings → API
     const SUPABASE_URL = "https://dzazdrpgedrrcnuzgjjc.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6YXpkcnBnZWRycmNudXpnampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjUxOTQsImV4cCI6MjA4MjcwMTE5NH0.8ZRnOiGtyfi5ibmTbKLROnQ4PqBIDvDfeH-mWGUQy_M";
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const statusEl = document.getElementById("status");
+    
+    window.supabase = supabase;
+const statusEl = document.getElementById("status");
     const codeEl = document.getElementById("code");
     const verifyBtn = document.getElementById("verifyBtn");
     const clearBtn = document.getElementById("clearBtn");
     const signOutLink = document.getElementById("signOutLink");
 
     const show = (ok, html) => {
-      const icon = ok ? "✓" : "×";
-      const klass = ok ? "ok" : "bad";
-      statusEl.className = "status show";
-      statusEl.innerHTML = `
-        <div class="status-card ${klass}">
-          <div class="icon">${icon}</div>
-          <div class="msg">${html}</div>
-        </div>
-      `;
+      statusEl.className = "status show " + (ok ? "ok" : "bad");
+      statusEl.innerHTML = html;
     };
     const hide = () => { statusEl.className = "status"; statusEl.innerHTML = ""; };
     const row = (k,v) => `<div class="row"><strong>${k}</strong><span>${v ?? "-"}</span></div>`;
@@ -366,66 +131,10 @@
     // Guard: must be staff
     const { data: isStaff, error: staffErr } = await supabase.rpc("is_staff");
     if (staffErr || !isStaff) {
-      show(false, "<strong>Access denied.</strong> This page is for staff only.");
+      show(false, "❌ Access denied. This page is for staff only.");
       verifyBtn.disabled = true;
     }
 
-
-// === Dashboard stats (read-only) ===
-async function loadStats() {
-  const today = new Date().toISOString().split("T")[0];
-
-  const set = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = (val ?? 0).toString();
-  };
-
-  try {
-    // Verified today (verifications logged today)
-    const startIso = `${today}T00:00:00.000Z`;
-    const nextIso = new Date(Date.parse(startIso) + 24 * 60 * 60 * 1000).toISOString();
-
-    const { count: verifiedToday, error: e1 } = await supabase
-      .from("booking_verifications")
-      .select("*", { count: "exact", head: true })
-      .gte("verified_at", startIso)
-      .lt("verified_at", nextIso);
-    if (e1) throw e1;
-    set("statVerified", verifiedToday);
-
-    // Pending (not verified yet)
-    const { count: pending, error: e2 } = await supabase
-      .from("bookings")
-      .select("*", { count: "exact", head: true })
-      .is("verified_at", null);
-    if (e2) throw e2;
-    set("statPending", pending);
-
-    // Expired (end_date before today)
-    const { count: expired, error: e3 } = await supabase
-      .from("bookings")
-      .select("*", { count: "exact", head: true })
-      .lt("end_date", today);
-    if (e3) throw e3;
-    set("statExpired", expired);
-
-    // Active staff (count staff records)
-    const { count: staffCount, error: e4 } = await supabase
-      .from("zod_staff")
-      .select("*", { count: "exact", head: true });
-    if (e4) throw e4;
-    set("statStaff", staffCount);
-
-  } catch (err) {
-    // If RLS blocks counts, keep placeholders instead of breaking the page.
-    console.warn("Stats load skipped:", err?.message || err);
-  }
-}
-
-// Only load stats for authorized staff
-if (!verifyBtn.disabled) {
-  await loadStats();
-}
     signOutLink.addEventListener("click", async (e) => {
       e.preventDefault();
       await supabase.auth.signOut();
@@ -435,46 +144,50 @@ if (!verifyBtn.disabled) {
     verifyBtn.addEventListener("click", async () => {
       hide();
       const ref = (codeEl.value || "").trim();
-      if (!ref) return show(false, "<strong>Missing reference.</strong> Please enter a booking reference.");
+      if (!ref) return show(false, "❌ Please enter a booking reference.");
 
       verifyBtn.disabled = true;
       verifyBtn.textContent = "Verifying...";
 
       try {
+        // 1) Fetch booking by booking_ref (THIS is your official code)
         const { data: b, error: fetchErr } = await supabase
           .from("bookings")
           .select(`
-            booking_ref,
-            customer_name,
-            start_date,
-            end_date,
-            amount_ngn,
-            status,
-            paid_at,
-            verified_at,
-            used_at,
-            package:packages ( id, name )
-          `)
+  booking_ref,
+  customer_name,
+  start_date,
+  end_date,
+  amount_ngn,
+  status,
+  paid_at,
+  verified_at,
+  used_at,
+  package:packages ( id, name )
+`)
           .eq("booking_ref", ref)
           .maybeSingle();
 
-        if (fetchErr) return show(false, `<strong>Database error:</strong> ${fetchErr.message}`);
-        if (!b) return show(false, "<strong>Invalid reference.</strong> Booking not found.");
+        if (fetchErr) return show(false, `❌ Database error: ${fetchErr.message}`);
+        if (!b) return show(false, "❌ Invalid booking reference.");
+		const packageName = await getPackageName(b.package_id);
 
-        // Payment check (your DB uses status/paid_at)
-        const paidOk = String(b.status || "").toLowerCase() === "paid" || !!b.paid_at;
-        if (!paidOk) return show(false, "<strong>Not paid.</strong> Booking is not paid/confirmed.");
+        // 2) Payment check (prefer payment_status; fallback to paid_at)
+        const pay = String(b.payment_status || "").toLowerCase();
+        const paidOk = ["paid","confirmed","success"].includes(pay) || !!b.paid_at;
+        if (!paidOk) return show(false, "❌ Booking is not paid/confirmed.");
 
-        // Expiry check
+        // 3) Expiry check (if end_date exists)
         const today = todayISO();
-        if (b.end_date && String(b.end_date) < today) return show(false, "<strong>Expired.</strong> Booking has expired.");
+        if (b.end_date && String(b.end_date) < today) return show(false, "❌ Booking has expired.");
 
-        // Daily consume logic
+        // 4) Already used check
+        if (b.used_at) return show(false, "❌ Booking reference already used.");
+
+        // 5) Consume daily, otherwise just verify
         const pkgName = String(b.package?.name || "").toLowerCase();
-        const consume = pkgName.includes("daily");
+		const consume = pkgName.includes("daily");
 
-        // Only block re-use for daily
-        if (consume && b.used_at) return show(false, "<strong>Already used.</strong> This daily booking has been consumed.");
 
         const updatePayload = {
           verified_at: new Date().toISOString(),
@@ -487,45 +200,49 @@ if (!verifyBtn.disabled) {
           .update(updatePayload)
           .eq("booking_ref", ref)
           .select(`
-            booking_ref,
-            customer_name,
-            start_date,
-            end_date,
-            amount_ngn,
-            status,
-            paid_at,
-            verified_at,
-            used_at,
-            package:packages ( id, name )
-          `)
+  booking_ref,
+  customer_name,
+  start_date,
+  end_date,
+  package_type,
+  package_id,
+  amount_ngn,
+  payment_status,
+  status,
+  paid_at,
+  verified_at,
+  used_at
+`)
           .single();
 
-        if (upErr) return show(false, `<strong>Update failed:</strong> ${upErr.message}`);
+        if (upErr) return show(false, `❌ Failed to update booking: ${upErr.message}`);
 
-        // Audit log (best-effort)
+        // Audit log (best-effort). We store booking_ref inside booking_code column as the "code".
         await supabase.from("booking_verifications").insert({
-          booking_code: ref,
-          action: "verify",
-          outcome: "verified",
-          message: consume ? "Verified & consumed (daily)" : "Verified",
-          verified_by: sessionData.session.user.id
-        });
+  booking_code: ref,
+  action: "verify",
+  outcome: "verified",
+  message: consume ? "Verified & consumed (daily)" : "Verified",
+  verified_by: sessionData.session.user.id
+});
 
-        const details = `
-          <div class="details">
-            ${row("Booking ref", updated.booking_ref)}
-            ${row("Customer", updated.customer_name)}
-            ${row("Package", updated.package?.name || "-")}
-            ${row("Amount", updated.amount_ngn ? `₦${updated.amount_ngn}` : "-")}
-            ${row("Start", updated.start_date)}
-            ${row("End", updated.end_date)}
-            ${row("Payment", updated.status || (updated.paid_at ? "paid" : "pending"))}
-            ${row("Verified at", updated.verified_at)}
-            ${row("Consumed", consume ? "Yes (daily)" : "No")}
-          </div>
-        `;
 
-        show(true, `<strong>Verified successfully.</strong> Booking is valid.${details}`);
+   const details = `
+  <div class="details">
+    ${row("Booking ref", updated.booking_ref)}
+    ${row("Customer", updated.customer_name)}
+    ${row("Package", packageName)}
+    ${row("Amount", updated.amount_ngn ? `₦${updated.amount_ngn}` : "-")}
+    ${row("Start", updated.start_date)}
+    ${row("End", updated.end_date)}
+    ${row("Payment", updated.status || (updated.paid_at ? "paid" : "pending"))}
+    ${row("Verified at", updated.verified_at)}
+    ${row("Consumed", consume ? "Yes (daily)" : "No")}
+  </div>
+`;
+
+
+        show(true, `✅ Verified successfully.${details}`);
 
       } finally {
         verifyBtn.disabled = false;
@@ -537,10 +254,6 @@ if (!verifyBtn.disabled) {
       codeEl.value = "";
       hide();
       codeEl.focus();
-    });
-
-    codeEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") verifyBtn.click();
     });
   </script>
 </body>

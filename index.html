@@ -3,8 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ZoD Hub 2014 Staff Login</title>
-  <style>
+  <title>Staff Login — ZoD Hub</title>
+  
+  <script>
+    // Route root to staff login
+    window.location.replace("staff-login.html");
+  </script>
+<style>
     :root{
       --bg:#fbfbf8; --card:#fff; --text:#0f172a; --muted:#475569; --line:#e5e7eb;
       --accent:#0b3b89; --accent2:#0a2f6d; --danger:#b91c1c;
@@ -37,15 +42,12 @@
     button{padding:13px 18px; border-radius:14px; border:none; font-weight:600; cursor:pointer; min-width:150px}
     .primary{background:var(--accent); color:#fff}
     .primary:hover{background:var(--accent2)}
-    .secondary{background:#fff; border:1px solid rgba(11,59,137,.35); color:var(--accent)}
     .status{
       display:none; margin-top:16px; padding:12px; border-radius:14px; border:1px solid rgba(185,28,28,.25);
       background:rgba(185,28,28,.06); color:var(--danger); font-size:13px; line-height:1.45;
     }
     .status.show{display:block}
     .foot{margin-top:16px; font-size:12px; color:var(--muted)}
-    .link{color:var(--accent); text-decoration:none}
-    .link:hover{text-decoration:underline}
   </style>
 </head>
 <body>
@@ -72,12 +74,9 @@
         <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
       </div>
 
-     <div class="actions">
-  <button id="loginBtn" class="primary" type="button">
-    Sign in
-  </button>
-</div>
-
+      <div class="actions">
+        <button id="loginBtn" class="primary" type="button">Sign in</button>
+      </div>
 
       <div id="status" class="status" role="status" aria-live="polite"></div>
 
@@ -88,102 +87,77 @@
   </main>
 
   <script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  const SUPABASE_URL = "https://dzazdrpgedrrcnuzgjjc.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6YXpkcnBnZWRycmNudXpnampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjUxOTQsImV4cCI6MjA4MjcwMTE5NH0.8ZRnOiGtyfi5ibmTbKLROnQ4PqBIDvDfeH-mWGUQy_M";
-  const VERIFY_PAGE = "./verify-booking.html";
+    const SUPABASE_URL = "https://dzazdrpgedrrcnuzgjjc.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6YXpkcnBnZWRycmNudXpnampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjUxOTQsImV4cCI6MjA4MjcwMTE5NH0.8ZRnOiGtyfi5ibmTbKLROnQ4PqBIDvDfeH-mWGUQy_M"; // keep your real one here
+    const VERIFY_PAGE = "./verify-booking.html";
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const emailEl = document.getElementById("email");
-  const passEl  = document.getElementById("password");
-  const loginBtn = document.getElementById("loginBtn");
-  const statusEl = document.getElementById("status");
+    const emailEl = document.getElementById("email");
+    const passEl  = document.getElementById("password");
+    const loginBtn = document.getElementById("loginBtn");
+    const statusEl = document.getElementById("status");
 
-  function showError(msg){
-    statusEl.textContent = msg;
-    statusEl.classList.add("show");
-  }
-  function clearError(){
-    statusEl.textContent = "";
-    statusEl.classList.remove("show");
-  }
+    const showError = (msg) => { statusEl.textContent = msg; statusEl.classList.add("show"); };
+    const clearError = () => { statusEl.textContent = ""; statusEl.classList.remove("show"); };
 
-  function setBusy(busy){
-    loginBtn.disabled = busy;
-    loginBtn.textContent = busy ? "Signing in..." : "Sign in";
-  }
+    const setBusy = (busy) => {
+      loginBtn.disabled = busy;
+      loginBtn.textContent = busy ? "Signing in..." : "Sign in";
+    };
 
-  // Sanity check: show if placeholders are still present
-  if (SUPABASE_URL.includes("PASTE_") || SUPABASE_ANON_KEY.includes("PASTE_")) {
-    showError("Supabase URL / anon key not set. Paste them in the code first.");
-    console.error("Missing SUPABASE_URL or SUPABASE_ANON_KEY");
-  }
+    // PROOF JS is running:
+    console.log("staff-login.js loaded ✅");
 
-  // If already logged in, go to verify page
-  try {
-    const { data } = await supabase.auth.getSession();
-    if (data?.session) window.location.href = VERIFY_PAGE;
-  } catch (e) {
-    console.error("getSession error:", e);
-  }
+    // If already logged in, go straight to verification
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session) window.location.href = VERIFY_PAGE;
 
-  async function doLogin(){
-    clearError();
-    console.log("Login clicked");
+    async function doLogin(){
+      clearError();
+      console.log("Login clicked ✅");
 
-    const email = (emailEl.value || "").trim();
-    const password = passEl.value || "";
+      const email = (emailEl.value || "").trim();
+      const password = passEl.value || "";
 
-    if(!email || !password){
-      showError("Please enter your email and password.");
-      return;
+      if (!email || !password){
+        showError("Please enter your email and password.");
+        return;
+      }
+
+      setBusy(true);
+      try{
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error){
+          showError(error.message);
+          return;
+        }
+
+        // Staff check (recommended)
+        const { data: isStaff, error: staffErr } = await supabase.rpc("is_staff");
+        if (staffErr){
+          showError("Staff check failed: " + staffErr.message);
+          return;
+        }
+        if (!isStaff){
+          await supabase.auth.signOut();
+          showError("Access denied. Your account is not authorised as staff.");
+          return;
+        }
+
+        window.location.href = VERIFY_PAGE;
+      } finally {
+        setBusy(false);
+      }
     }
 
-    setBusy(true);
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      console.log("signIn result:", { data, error });
-
-      if (error) {
-        showError(error.message);
-        return;
-      }
-
-      // Optional staff check (recommended)
-      const { data: isStaff, error: staffErr } = await supabase.rpc("is_staff");
-      console.log("is_staff:", { isStaff, staffErr });
-
-      if (staffErr) {
-        showError("Staff check failed: " + staffErr.message);
-        return;
-      }
-      if (!isStaff) {
-        await supabase.auth.signOut();
-        showError("Access denied. Your account is not authorised as staff.");
-        return;
-      }
-
-      window.location.href = VERIFY_PAGE;
-
-    } catch (e) {
-      console.error("Login exception:", e);
-      showError("Login failed. Check console for details.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  // Click handler
-  loginBtn.addEventListener("click", doLogin);
-
-  // Enter key submits too
-  [emailEl, passEl].forEach(el => {
-    el.addEventListener("keydown", (e) => {
+    loginBtn.addEventListener("click", doLogin);
+    [emailEl, passEl].forEach(el => el.addEventListener("keydown", (e) => {
       if (e.key === "Enter") doLogin();
-    });
-  });
-</script>
+    }));
+  </script>
 
+</body>
+</html>

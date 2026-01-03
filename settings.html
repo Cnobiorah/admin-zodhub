@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Settings — ZoD Hub</title>
   <style>
+  .pill{display:inline-flex;align-items:center;justify-content:center;padding:.25rem .6rem;border-radius:999px;font-weight:700;font-size:.78rem;border:1px solid #e5e7eb}
+  .pill.ok{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}
+  .pill.bad{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+
     :root{
       --bg:#f4f7fb;
       --card:#ffffff;
@@ -166,6 +170,11 @@
       .grid2{grid-template-columns:1fr}
       .main{padding:18px 14px 28px}
     }
+
+/* NAV FIX: ensure sidebar items are clickable above decorative layers */
+.sidebar, .sidebar * { pointer-events: auto; }
+.sidebar { position: relative; z-index: 5; }
+
 </style>
 </head>
 <body>
@@ -273,5 +282,155 @@
 
     </main>
   </div>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  const SUPABASE_URL = 'https://dzazdrpgedrrcnuzgjjc.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6YXpkcnBnZWRycmNudXpnampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjUxOTQsImV4cCI6MjA4MjcwMTE5NH0.8ZRnOiGtyfi5ibmTbKLROnQ4PqBIDvDfeH-mWGUQy_M';
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Expose for debugging in DevTools console
+  window.supabase = supabase;
+
+  // Basic auth guard (staff must be signed in)
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData?.session) {
+    // Back to login
+    window.location.replace("index.html");
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value ?? "—";
+  }
+
+  async function loadPage() {
+    try {
+      if ('settings' === "checkins") {
+        // Today's check-ins = all verifications today
+        const { data: rows, error } = await supabase
+          .from("booking_verifications")
+          .select("verified_at, booking_code, outcome, message, verified_by")
+          .gte("verified_at", new Date(new Date().toDateString()).toISOString())
+          .order("verified_at", { ascending: false })
+          .limit(50);
+        if (error) throw error;
+
+        // enrich with bookings + packages (two-step)
+        const codes = (rows ?? []).map(r => r.booking_code).filter(Boolean);
+        let bookingMap = new Map();
+        let packageMap = new Map();
+
+        if (codes.length) {
+          const { data: bookings, error: bErr } = await supabase
+            .from("bookings")
+            .select("booking_ref, customer_name, package_id, amount_ngn, status")
+            .in("booking_ref", codes);
+          if (bErr) throw bErr;
+          (bookings ?? []).forEach(b => bookingMap.set(b.booking_ref, b));
+
+          const pkgIds = Array.from(new Set((bookings ?? []).map(b => b.package_id).filter(Boolean)));
+          if (pkgIds.length) {
+            const { data: pkgs, error: pErr } = await supabase
+              .from("packages")
+              .select("id, name")
+              .in("id", pkgIds);
+            if (pErr) throw pErr;
+            (pkgs ?? []).forEach(p => packageMap.set(p.id, p));
+          }
+        }
+
+        const tbody = document.querySelector("[data-rows]");
+        if (tbody) {
+          tbody.innerHTML = (rows ?? []).map(r => {
+            const b = bookingMap.get(r.booking_code);
+            const pkg = b?.package_id ? packageMap.get(b.package_id) : null;
+            const time = r.verified_at ? new Date(r.verified_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—";
+            return `
+              <tr>
+                <td>${time}</td>
+                <td>${r.booking_code ?? "—"}</td>
+                <td>${b?.customer_name ?? "—"}</td>
+                <td>${pkg?.name ?? "—"}</td>
+                <td>${b?.amount_ngn ? "₦" + Number(b.amount_ngn).toLocaleString() : "—"}</td>
+                <td><span class="pill ${(r.outcome||"").toLowerCase()==="verified" ? "ok":"bad"}">${r.outcome ?? "—"}</span></td>
+                <td>${r.verified_by ?? "—"}</td>
+              </tr>`;
+          }).join("");
+        }
+
+        setText("metric_verified_today", (rows ?? []).length);
+        if ((rows ?? []).length) {
+          setText("metric_first_checkin", new Date(rows[rows.length-1].verified_at).toLocaleTimeString());
+          setText("metric_last_checkin", new Date(rows[0].verified_at).toLocaleTimeString());
+        }
+      }
+
+      if ('settings' === "verification-logs") {
+        const { data: rows, error } = await supabase
+          .from("booking_verifications")
+          .select("verified_at, booking_code, outcome, message, verified_by")
+          .order("verified_at", { ascending: false })
+          .limit(100);
+        if (error) throw error;
+
+        const codes = (rows ?? []).map(r => r.booking_code).filter(Boolean);
+        let bookingMap = new Map();
+        let packageMap = new Map();
+
+        if (codes.length) {
+          const { data: bookings, error: bErr } = await supabase
+            .from("bookings")
+            .select("booking_ref, customer_name, package_id, amount_ngn, status")
+            .in("booking_ref", codes);
+          if (bErr) throw bErr;
+          (bookings ?? []).forEach(b => bookingMap.set(b.booking_ref, b));
+
+          const pkgIds = Array.from(new Set((bookings ?? []).map(b => b.package_id).filter(Boolean)));
+          if (pkgIds.length) {
+            const { data: pkgs, error: pErr } = await supabase
+              .from("packages")
+              .select("id, name")
+              .in("id", pkgIds);
+            if (pErr) throw pErr;
+            (pkgs ?? []).forEach(p => packageMap.set(p.id, p));
+          }
+        }
+
+        const tbody = document.querySelector("[data-rows]");
+        if (tbody) {
+          tbody.innerHTML = (rows ?? []).map(r => {
+            const b = bookingMap.get(r.booking_code);
+            const pkg = b?.package_id ? packageMap.get(b.package_id) : null;
+            const dt = r.verified_at ? new Date(r.verified_at) : null;
+            const dtStr = dt ? dt.toLocaleString() : "—";
+            return `
+              <tr>
+                <td>${dtStr}</td>
+                <td>${r.booking_code ?? "—"}</td>
+                <td>${b?.customer_name ?? "—"}</td>
+                <td>${pkg?.name ?? "—"}</td>
+                <td><span class="pill ${(r.outcome||"").toLowerCase()==="verified" ? "ok":"bad"}">${r.outcome ?? "—"}</span></td>
+                <td>${r.verified_by ?? "—"}</td>
+                <td>${r.message ?? "—"}</td>
+              </tr>`;
+          }).join("");
+        }
+      }
+
+      if ('settings' === "settings") {
+        // basic: show current user
+        const { data: userData } = await supabase.auth.getUser();
+        setText("staff_email", userData?.user?.email ?? "—");
+      }
+    } catch (e) {
+      console.error(e);
+      const errEl = document.querySelector("[data-error]");
+      if (errEl) errEl.textContent = e?.message ?? String(e);
+    }
+  }
+
+  await loadPage();
+</script>
+
 </body>
 </html>
